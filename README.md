@@ -1,10 +1,17 @@
-# Tesseract: A Study in Four-Dimensional Rotation
+# A Four-Dimensional Rotation - The Tesseract
 
-## Historical Context and Mathematical Heritage
 
 The tesseract, first described by Charles Howard Hinton in 1888, stands as one of mathematics' most elegant conceptual bridges between our perceived reality and higher dimensional spaces. Just as Edwin Abbott Abbott's "Flatland" (1884) challenged Victorian sensibilities about dimensional limitations, our visualization attempts to render the sublime geometry of 4-space comprehensible to three-dimensional intuition.
 
 This implementation draws inspiration from Alicia Boole Stott's pioneering work in four-dimensional geometry. Boole Stott, daughter of logician George Boole, developed methods for visualizing four-dimensional polytopes through their three-dimensional cross-sections – a technique we employ here through computational means.
+
+Think of a square rotating on a piece of paper (2D). When it rotates, we see all its sides from different angles. Now imagine a cube rotating in front of you (3D) - you can see its faces appear and disappear as it turns.
+
+A tesseract is a 4D cube, and its rotation is similar but extended into the fourth dimension. Just as a 3D cube's rotation reveals faces that were hidden, a tesseract's rotation reveals entire cubes that were "tucked away" in the fourth dimension.
+
+The classic animation of a tesseract that appears to fold through itself is actually a 3D shadow of this 4D rotation, similar to how a cube's shadow on paper is a 2D representation of a 3D object.
+
+Like seeing a cube from "outside" lets you view all its faces, a being in 4D space could see all the cubic faces of a tesseract simultaneously - something our 3D minds struggle to fully visualize.
 
 ## Mathematical Foundations
 
@@ -70,4 +77,4 @@ Clone the repository and compile using contemporary Xcode toolchain (15+). The i
 
 ---
 
-*Note: This implementation pays homage to the geometers of the past while embracing modern computational methods. As Élie Cartan showed us, the beauty of mathematics lies in the synthesis of abstract structure and concrete representation.*
+*(c) 2025 by Axel Schmidt*
