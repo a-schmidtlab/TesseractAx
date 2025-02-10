@@ -53,27 +53,25 @@ struct TesseractView: View {
     }
     
     private func project(x: Double, y: Double, z: Double, w: Double, angle: Double, scale: Double, center: CGPoint) -> CGPoint {
-        // First rotate in XY plane
-        let (rotX1, rotY1) = rotatePoint(x: x, y: y, angle: angle)
+        // Rotate in the front-left to back-right plane (xz-plane)
+        let (rotX, rotZ) = rotatePoint(x: x, y: z, angle: angle)
         
-        // Then rotate in XZ plane
-        let (rotX2, rotZ1) = rotatePoint(x: rotX1, y: z, angle: sin(angle * 0.5))
+        // Rotate in the top-bottom plane (yw-plane)
+        let (rotY, rotW) = rotatePoint(x: y, y: w, angle: angle * 0.7)
         
-        // Finally rotate in YZ plane
-        let (rotY2, _) = rotatePoint(x: rotY1, y: rotZ1, angle: cos(angle * 0.3))
-        
-        // 4D to 3D projection with w-coordinate
+        // 4D to 3D projection
         let distance = 5.0
-        let w4 = w * sin(angle * 0.5) // Use sine for smooth w coordinate animation
-        let perspective = 1.0 / (distance - w4)
+        let perspective = 1.0 / (distance - rotW)
         
-        // Apply perspective projection
-        let projectedX = rotX2 * perspective
-        let projectedY = rotY2 * perspective
+        // Project the 4D point to 3D
+        let projectedX = rotX * perspective
+        let projectedY = rotY * perspective
+        let projectedZ = rotZ * perspective
         
+        // Project 3D to 2D
         return CGPoint(
-            x: center.x + projectedX * scale,
-            y: center.y + projectedY * scale
+            x: center.x + (projectedX - projectedZ * 0.5) * scale,
+            y: center.y + (projectedY - projectedZ * 0.5) * scale
         )
     }
     
