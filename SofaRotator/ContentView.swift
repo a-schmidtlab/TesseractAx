@@ -15,23 +15,20 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                VStack {
-                    Spacer()
-                    
-                    TesseractView(rotationAngle: rotation)
-                        .frame(width: min(geometry.size.width, geometry.size.height) * 0.95,
-                               height: min(geometry.size.width, geometry.size.height) * 0.95)
-                    
-                    Spacer()
-                }
+                Color.black.edgesIgnoringSafeArea(.all)
                 
+                // Center the tesseract and make it fill most of the screen
+                TesseractView(rotationAngle: rotation)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                // Keep the info button in the top-right corner
                 VStack {
                     HStack {
                         Spacer()
                         Button(action: { showingInfo = true }) {
-                            Image(systemName: "info.circle.fill")
-                                .font(.title)
-                                .foregroundColor(.blue)
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 24, weight: .light))
+                                .foregroundColor(.cyan.opacity(0.6))
                                 .padding()
                         }
                         .accessibilityLabel("Information about the Tesseract")
@@ -39,16 +36,12 @@ struct ContentView: View {
                     Spacer()
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black)
             .sheet(isPresented: $showingInfo) {
                 TesseractInfoView()
             }
         }
         .onReceive(timer) { _ in
-            // Continuous smooth rotation using sine function
             rotation += 0.005
-            // No need to reset, let it continue
         }
     }
 }

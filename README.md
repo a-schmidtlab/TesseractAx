@@ -1,80 +1,63 @@
-# A Four-Dimensional Rotation - The Tesseract
+# The Tesseract - A Window into the Fourth Dimension
 
+An exploration of four-dimensional geometry through interactive visualization, inspired by the works of mathematicians who dared to think beyond our three-dimensional intuition.
 
-The tesseract, first described by Charles Howard Hinton in 1888, stands as one of mathematics' most elegant conceptual bridges between our perceived reality and higher dimensional spaces. Just as Edwin Abbott Abbott's "Flatland" (1884) challenged Victorian sensibilities about dimensional limitations, our visualization attempts to render the sublime geometry of 4-space comprehensible to three-dimensional intuition.
+## Mathematical Foundation
 
-This implementation draws inspiration from Alicia Boole Stott's pioneering work in four-dimensional geometry. Boole Stott, daughter of logician George Boole, developed methods for visualizing four-dimensional polytopes through their three-dimensional cross-sections – a technique we employ here through computational means.
+The tesseract represents the four-dimensional analog of a cube, existing in a space that transcends our everyday experience. This implementation explores its geometry through:
 
-Think of a square rotating on a piece of paper (2D). When it rotates, we see all its sides from different angles. Now imagine a cube rotating in front of you (3D) - you can see its faces appear and disappear as it turns.
+### Rotational Dynamics
+- Multiple simultaneous rotations in 4D planes (XY, XZ, XW, YZ, YW, ZW)
+- Quaternion-based smooth transitions
+- Stereographic projection preserving geometric relationships
 
-A tesseract is a 4D cube, and its rotation is similar but extended into the fourth dimension. Just as a 3D cube's rotation reveals faces that were hidden, a tesseract's rotation reveals entire cubes that were "tucked away" in the fourth dimension.
+### Visualization Pipeline
+1. R⁴ → R³: Stereographic projection with depth preservation
+2. R³ → R²: Perspective projection with opacity gradients
+3. Real-time interactive rotation in all six 4D planes
 
-The classic animation of a tesseract that appears to fold through itself is actually a 3D shadow of this 4D rotation, similar to how a cube's shadow on paper is a 2D representation of a 3D object.
+### Geometric Properties
+- 16 vertices connected by 32 edges
+- 24 square faces forming 8 cubic cells
+- Full preservation of hypercube symmetries
+- Continuous tracking of 4D depth for visualization
 
-Like seeing a cube from "outside" lets you view all its faces, a being in 4D space could see all the cubic faces of a tesseract simultaneously - something our 3D minds struggle to fully visualize.
+## Historical Context
 
-## Mathematical Foundations
+This visualization stands on the shoulders of giants:
+- Charles Howard Hinton (1888) - First description of the tesseract
+- Alicia Boole Stott - Revolutionary work on 4D polytope visualization
+- Ludwig Schläfli - Classification of regular polytopes
+- Hermann Minkowski - Four-dimensional spacetime formulation
 
-Our approach follows the tradition of Felix Klein's Erlangen Program, viewing geometric properties through the lens of transformation groups. The visualization implements a specific case of the general n-dimensional rotation group SO(4), following principles established in Hermann Minkowski's four-dimensional spacetime formulation:
+## Technical Implementation
 
-1. **Quaternionic Rotation Structure**
-   - Following Hamilton's quaternion algebra (ℍ)
-   - Fundamental rotation occurs in R⁴, utilizing the double cover SU(2) → SO(3)
-   - Employs Euler-Rodrigues parameters for smooth rotational transitions
+Built with:
+- SwiftUI for declarative UI and animations
+- Custom Canvas-based rendering engine
+- Quaternion-based rotation system
+- Real-time depth-based opacity calculations
 
-2. **Projective Geometry Pipeline**
-   - R⁴ → R³: Employs Cayley-Klein's projective reduction
-   - R³ → R²: Classical perspective projection following Gaspard Monge's descriptive geometry
-   - Preserves the Schläfli double-six configuration inherent in tesseract symmetry
+## Requirements
+- iOS 18.2+
+- ARM64 architecture
+- Xcode 15+
 
-3. **Lie Group Theory Application**
-   - Rotation manifold: SO(4) with its natural topology
-   - Infinitesimal generators: so(4) Lie algebra elements
-   - Continuous one-parameter subgroups for smooth animation
+## Installation
+```bash
+git clone https://github.com/yourusername/SofaRotator.git
+cd SofaRotator
+# Open in Xcode and run
+```
 
-## Computational Implementation
+## License
 
-### Core Geometric Components
-- `TesseractView.swift`: Realizes the Coxeter group symmetries of the 24-cell
-- `ContentView.swift`: Implements the continuous group action
-- `IconGenerator.swift`: Projects 4D symmetries into 2D iconography
-
-### Algorithmic Framework
-
-The projection follows Sophus Lie's transformation group theory:
-
-where:
-- ι: Initial embedding R⁴ → P⁵
-- ρ(t): One-parameter subgroup of SO(4)
-- π: Stereographic projection
-
-### Geometric Invariants
-- Preserves Clifford parallels
-- Maintains polyhedral duality
-- Respects the 24 octahedral cells of the tesseract
-
-## Historical Implementation Context
-
-This visualization continues the tradition of:
-- Ludwig Schläfli's 1852 classification of regular polytopes
-- Victor Schlegel's 1883 visualization methods
-- Thomas Banchoff's 1960s computer graphics innovations
-
-## Technical Requirements
-
-The implementation utilizes:
-- Modern ARM64 architecture (iOS 18.2+)
-- Swift 5.0's type-safe numerical computations
-- SwiftUI's declarative geometry framework
-
-## Installation Notes
-
-Clone the repository and compile using contemporary Xcode toolchain (15+). The implementation is self-contained within Apple's SwiftUI framework, requiring no external mathematical libraries.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-"Geometry is not true, it is advantageous." - Henri Poincaré
+"Mathematics requires a small dose, not of genius, but of an imaginative freedom which, in a larger dose, would be insanity." - Angus K. Rodgers
 
 ---
 
-*(c) 2025 by Axel Schmidt*
+Copyright © 2025 Axel Schmidt. All rights reserved.
