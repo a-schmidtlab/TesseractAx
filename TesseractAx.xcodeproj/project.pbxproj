@@ -29,9 +29,22 @@
 		D763E07D2D5A20BC001F0254 /* SofaRotatorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SofaRotatorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D763E0962D5A28F8001F0254 /* Exceptions for "SofaRotator" folder in "SofaRotator" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D763E0622D5A20BA001F0254 /* SofaRotator */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D763E0652D5A20BA001F0254 /* SofaRotator */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D763E0962D5A28F8001F0254 /* Exceptions for "SofaRotator" folder in "SofaRotator" target */,
+			);
 			path = SofaRotator;
 			sourceTree = "<group>";
 		};
@@ -399,6 +412,9 @@
 				DEVELOPMENT_TEAM = G8ZX9P9XV6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SofaRotator/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSMotionUsageDescription = "We need access to device motion to rotate the sofa based on device orientation";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +444,9 @@
 				DEVELOPMENT_TEAM = G8ZX9P9XV6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SofaRotator/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSMotionUsageDescription = "We need access to device motion to rotate the sofa based on device orientation";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
