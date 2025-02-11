@@ -1,4 +1,4 @@
-import SwiftUI
+    import SwiftUI
 
 struct MathematicalFrameworkSection: View {
     var body: some View {

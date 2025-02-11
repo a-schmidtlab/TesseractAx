@@ -26,7 +26,7 @@ struct IconGenerator: View {
                 }
                 
                 // Draw cubes
-                for (i, point) in cube.enumerated() {
+                for i in 0..<cube.count {
                     let nextIndex = (i + 1) % cube.count
                     
                     // Draw first cube
