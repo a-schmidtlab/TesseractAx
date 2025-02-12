@@ -7,7 +7,8 @@
  */
 
 import SwiftUI
-import os.signpost
+import Combine
+import QuartzCore
 
 /// Visualization mode for the tesseract
 enum TesseractVisualizationMode {
@@ -68,12 +69,54 @@ struct TesseractView: View {
     @State private var showCrossSection: Bool = false
     @State private var crossSectionPosition: Double = 0
     
-    // Timer for auto-rotation (optimized for real device)
-    let timer = Timer.publish(every: 1/120, on: .main, in: .common).autoconnect()
+    // Replace timer with DisplayLink
+    @State private var displayLink: CADisplayLink?
+    @State private var lastUpdateTime: CFTimeInterval = 0
     
-    private let signposter = OSSignposter()
-    private static let subsystem = "com.axelschmidt.SofaRotator"
-    private static let logger = Logger(subsystem: subsystem, category: "Performance")
+    // Keep a strong reference to the target
+    @State private var displayLinkTarget: DisplayLinkTarget?
+    
+    private func setupDisplayLink() {
+        displayLink?.invalidate()
+        let target = DisplayLinkTarget(update: updateRotations)
+        displayLink = CADisplayLink(
+            target: target,
+            selector: #selector(DisplayLinkTarget.handleUpdate)
+        )
+        displayLink?.preferredFramesPerSecond = 60 // Set to 60fps for better performance
+        displayLink?.add(to: .main, forMode: .common)
+    }
+    
+    private func updateRotations() {
+        let currentTime = CACurrentMediaTime()
+        let delta = min(1.0/30.0, currentTime - lastUpdateTime) // Cap delta time
+        lastUpdateTime = currentTime
+        
+        let rotationDelta = 0.02 * delta * 60 // Scale by delta time and target 60fps
+        
+        if isAutoRotating {
+            if !lockXW { xwRotation += rotationDelta * xwSpeed * autoRotationSpeed }
+            if !lockYZ { yzRotation += rotationDelta * yzSpeed * autoRotationSpeed }
+            if !lockXY { xyRotation += rotationDelta * xySpeed * autoRotationSpeed }
+            if !lockZW { zwRotation += rotationDelta * zwSpeed * autoRotationSpeed }
+        } else {
+            xwRotation += rotationDelta * xwSliderPosition * 2
+            yzRotation += rotationDelta * yzSliderPosition * 2
+            xyRotation += rotationDelta * xySliderPosition * 2
+            zwRotation += rotationDelta * zwSliderPosition * 2
+        }
+    }
+    
+    init(preview: Bool = false) {
+        if preview {
+            // Set static values for preview
+            _xwRotation = State(initialValue: 0.5)
+            _yzRotation = State(initialValue: 0.3)
+            _xyRotation = State(initialValue: 0.2)
+            _zwRotation = State(initialValue: 0.1)
+            _isAutoRotating = State(initialValue: false)
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -91,17 +134,23 @@ struct TesseractView: View {
                         zwSliderPosition = 0.15
                         isAutoRotating = true
                         autoRotationSpeed = 1.0
+                        lastUpdateTime = CACurrentMediaTime()
+                        
+                        // Create and store the target
+                        displayLinkTarget = DisplayLinkTarget(update: updateRotations)
+                        displayLink = CADisplayLink(
+                            target: displayLinkTarget!,
+                            selector: #selector(DisplayLinkTarget.handleUpdate)
+                        )
+                        displayLink?.preferredFramesPerSecond = 60
+                        displayLink?.add(to: .main, forMode: .common)
                     }
                     
                     // Main visualization
                     Canvas { context, size in
-                        let signpostID = signposter.makeSignpostID()
-                        let interval = signposter.beginInterval("Frame Render", id: signpostID)
-                        
                         let center = CGPoint(x: size.width/2, y: size.height/2)
                         let scale = min(size.width, size.height) * 4.0
                         
-                        signposter.emitEvent("Begin Vertex Creation", id: signpostID)
                         // Create vertices with enhanced 4D perspective
                         let innerCube = createVertices(
                             scale: 0.5,
@@ -128,9 +177,7 @@ struct TesseractView: View {
                             viewScale: scale,
                             center: center
                         )
-                        signposter.emitEvent("End Vertex Creation", id: signpostID)
                         
-                        signposter.emitEvent("Begin Drawing", id: signpostID)
                         switch visualizationMode {
                         case .wireframe:
                             drawWireframe(context: context, innerCube: innerCube, outerCube: outerCube)
@@ -141,39 +188,8 @@ struct TesseractView: View {
                         if showCrossSection {
                             drawCrossSection(context: context, position: crossSectionPosition, scale: scale, center: center)
                         }
-                        signposter.emitEvent("End Drawing", id: signpostID)
-                        
-                        signposter.endInterval("Frame Render", interval)
                     }
                     .ignoresSafeArea()
-                    .onReceive(timer) { _ in
-                        let signpostID = signposter.makeSignpostID()
-                        let interval = signposter.beginInterval("Timer Update", id: signpostID)
-                        
-                        let rotationDelta = 0.02
-                        if isAutoRotating {
-                            if !lockXW { xwRotation += rotationDelta * xwSpeed * autoRotationSpeed }
-                            if !lockYZ { yzRotation += rotationDelta * yzSpeed * autoRotationSpeed }
-                            if !lockXY { xyRotation += rotationDelta * xySpeed * autoRotationSpeed }
-                            if !lockZW { zwRotation += rotationDelta * zwSpeed * autoRotationSpeed }
-                        } else {
-                            xwRotation += rotationDelta * xwSliderPosition * 2
-                            yzRotation += rotationDelta * yzSliderPosition * 2
-                            xyRotation += rotationDelta * xySliderPosition * 2
-                            zwRotation += rotationDelta * zwSliderPosition * 2
-                        }
-                        
-                        signposter.endInterval("Timer Update", interval)
-                    }
-                    
-                    // Move these modifiers to the parent ZStack or NavigationStack level
-                    // since they apply to the whole view hierarchy
-                    .onChange(of: visualizationMode) { _ in
-                        Self.logger.debug("Visualization mode changed")
-                    }
-                    .onChange(of: projectionMode) { _ in
-                        Self.logger.debug("Projection mode changed")
-                    }
                     
                     // Top Bar with Buttons
                     VStack {
@@ -190,7 +206,7 @@ struct TesseractView: View {
                             
                             Spacer()
                             
-                            // Info Button (restored original styling)
+                            // Info Button
                             NavigationLink(destination: TesseractInfoView()) {
                                 Image(systemName: "info.circle")
                                     .font(.title2)
@@ -231,6 +247,11 @@ struct TesseractView: View {
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+        }
+        .onDisappear {
+            displayLink?.invalidate()
+            displayLink = nil
+            displayLinkTarget = nil
         }
     }
     
@@ -767,5 +788,19 @@ struct DarkGroupBoxStyle: GroupBoxStyle {
 }
 
 #Preview {
-    TesseractView()
+    TesseractView(preview: true)
+}
+
+// Add this helper class for DisplayLink
+private class DisplayLinkTarget: NSObject {
+    private let updateAction: () -> Void
+    
+    init(update: @escaping () -> Void) {
+        self.updateAction = update
+        super.init()
+    }
+    
+    @objc func handleUpdate() {
+        updateAction()
+    }
 } 
