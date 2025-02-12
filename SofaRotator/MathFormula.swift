@@ -38,53 +38,65 @@ struct MathFormula: View {
             
             switch type {
             case .rotationMatrix:
-                // Draw 4x4 rotation matrix
+                // Defer to RotationMatrixView implementation
+                let titleText = Text("4D Rotation Matrix (XW-plane)")
+                    .font(.system(size: fontSize * 0.8, design: .serif))
+                    .bold()
+                    .foregroundColor(textColor)
+                
+                context.draw(
+                    titleText,
+                    at: CGPoint(x: size.width/2, y: size.height/4)
+                )
+                
+                // Draw the matrix using monospace font for better alignment
                 let matrix = [
-                    ["cos θ", "0", "0", "-sin θ"],
-                    ["0", "1", "0", "0"],
-                    ["0", "0", "1", "0"],
-                    ["sin θ", "0", "0", "cos θ"]
+                    "⎛ cos θ    0      0    -sin θ ⎞",
+                    "⎜   0      1      0      0    ⎟",
+                    "⎜   0      0      1      0    ⎟",
+                    "⎝ sin θ    0      0    cos θ  ⎠"
                 ]
                 
-                // Draw brackets with gradient
-                let bracketWidth = size.width * 0.05
-                let bracketPath = Path { p in
-                    // Left bracket
-                    p.move(to: CGPoint(x: 0, y: 0))
-                    p.addLine(to: CGPoint(x: bracketWidth, y: 0))
-                    p.addLine(to: CGPoint(x: bracketWidth, y: size.height))
-                    p.addLine(to: CGPoint(x: 0, y: size.height))
+                for (i, row) in matrix.enumerated() {
+                    let text = Text(row)
+                        .font(.system(size: fontSize, design: .monospaced))
+                        .bold()
+                        .foregroundColor(textColor)
                     
-                    // Right bracket
-                    p.move(to: CGPoint(x: size.width, y: 0))
-                    p.addLine(to: CGPoint(x: size.width - bracketWidth, y: 0))
-                    p.addLine(to: CGPoint(x: size.width - bracketWidth, y: size.height))
-                    p.addLine(to: CGPoint(x: size.width, y: size.height))
+                    let yPos = size.height * (CGFloat(i) + 2) / 6.0
+                    
+                    // Draw glow effect
+                    context.draw(
+                        text.foregroundColor(.blue.opacity(0.3)),
+                        at: CGPoint(x: size.width/2 + 1, y: yPos + 1)
+                    )
+                    
+                    // Draw main text
+                    context.draw(
+                        text,
+                        at: CGPoint(x: size.width/2, y: yPos)
+                    )
                 }
-                let gradient = Gradient(colors: [.blue, .cyan])
+                
+                // Draw decorative frame
+                let frameRect = CGRect(
+                    x: size.width * 0.1,
+                    y: size.height * 0.1,
+                    width: size.width * 0.8,
+                    height: size.height * 0.8
+                )
+                
+                let framePath = Path(roundedRect: frameRect, cornerRadius: 8)
+                
                 context.stroke(
-                    bracketPath,
+                    framePath,
                     with: .linearGradient(
-                        gradient,
-                        startPoint: CGPoint(x: 0, y: 0),
-                        endPoint: CGPoint(x: size.width, y: size.height)
+                        Gradient(colors: [.blue.opacity(0.3), .cyan.opacity(0.3)]),
+                        startPoint: .zero,
+                        endPoint: CGPoint(x: 0, y: size.height)
                     ),
                     lineWidth: 2
                 )
-                
-                // Draw matrix elements
-                let cellWidth = (size.width - 2 * bracketWidth) / 4
-                let cellHeight = size.height / 4
-                
-                for (i, row) in matrix.enumerated() {
-                    for (j, element) in row.enumerated() {
-                        let x = bracketWidth + CGFloat(j) * cellWidth + cellWidth/2
-                        let y = CGFloat(i) * cellHeight + cellHeight/2
-                        
-                        context.draw(Text(element).foregroundColor(textColor).font(font),
-                                   at: CGPoint(x: x, y: y))
-                    }
-                }
                 
             case .quaternion:
                 // Draw quaternion formula with proper spacing
@@ -157,13 +169,13 @@ struct MathFormula: View {
                 let spacing = size.height / CGFloat(formulas.count + 1)
                 for (i, formula) in formulas.enumerated() {
                     let y = spacing * CGFloat(i + 1)
+                    let x = size.width * 0.3  // Move text further left (changed from 0.4)
                     
-                    // Draw glow
+                    // Add a subtle glow effect
                     context.draw(Text(formula).foregroundColor(.blue.opacity(0.3)).font(font),
-                               at: CGPoint(x: size.width/2 + 1, y: y + 1))
-                    // Draw main text
+                               at: CGPoint(x: x + 1, y: y + 1))
                     context.draw(Text(formula).foregroundColor(textColor).font(font),
-                               at: CGPoint(x: size.width/2, y: y))
+                               at: CGPoint(x: x, y: y))
                 }
             }
         }

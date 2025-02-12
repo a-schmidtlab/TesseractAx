@@ -103,35 +103,6 @@ struct LatexStyle: ViewModifier {
     }
 }
 
-struct RotationMatrixView: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("4D Rotation Matrix (XW-plane):")
-                .font(.caption)
-                .foregroundColor(.gray)
-            
-            Text("""
-            ⎛ cos θ    0      0    -sin θ ⎞
-            ⎜   0      1      0      0    ⎟
-            ⎜   0      0      1      0    ⎟
-            ⎝ sin θ    0      0    cos θ  ⎠
-            """)
-            .font(.custom("Courier", size: 16))
-            .tracking(2)
-            .foregroundColor(.cyan)
-            .padding(20)
-            .background(Color(white: 0.1))
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing),
-                            lineWidth: 1)
-            )
-            .shadow(color: .blue.opacity(0.2), radius: 8, x: 0, y: 4)
-        }
-    }
-}
-
 struct IntroductionSection: View {
     var body: some View {
         Group {
@@ -172,21 +143,24 @@ struct DimensionalAnalysisSection: View {
                 .font(.system(.title2, design: .rounded))
                 .foregroundColor(.cyan)
             
-            Text("Consider the progression of dimensions:")
-                .foregroundColor(.gray)
+            Text("""
+            Let's take a journey through dimensions, starting from the simplest and building our way up to the tesseract.
+            """)
+            .foregroundColor(.gray)
             
             DimensionalProgressionView(size: 300)
                 .padding(.vertical)
             
             Text("""
-            𝟎𝐃 Point:     {•}
-            𝟏𝐃 Line:     [−−−]        2¹ vertices
-            𝟐𝐃 Square:     □          2² vertices
-            𝟑𝐃 Cube:       ▣          2³ vertices
-            𝟒𝐃 Tesseract:  ⧈         2⁴ vertices
+            • Point (0D): A single location in space
+            • Line (1D): A point extended into length
+            • Square (2D): A line extended into width
+            • Cube (3D): A square extended into height
+            • Tesseract (4D): A cube extended into the fourth dimension
+            
+            Each step follows the same pattern: take the previous shape and extend it in a new direction, perpendicular to all previous dimensions. The tesseract follows this pattern into the fourth dimension, even though we can't directly visualize this extension.
             """)
-            .font(.custom("Courier", size: 14))
-            .modifier(LatexStyle())
+            .foregroundColor(.gray)
         }
     }
 }
@@ -194,30 +168,46 @@ struct DimensionalAnalysisSection: View {
 struct HistoricalSection: View {
     var body: some View {
         Group {
-            Text("Some History")
+            Text("Historical Journey")
                 .font(.system(.title2, design: .rounded))
                 .foregroundColor(.cyan)
             
             Text("""
-            Let me tell you a story about how we came to understand the fourth dimension. 
-
-            Back in 1844, a mathematician named Arthur Cayley was playing with patterns in numbers. He developed something called matrix algebra – think of it as a way to organize numbers in boxes that follow special rules. At the time, he probably didn't realize he was building the perfect tool for understanding rotations in higher dimensions.
-
-            Then comes Charles Howard Hinton in 1888. Hinton was quite a character who believed that humans could actually train themselves to visualize the fourth dimension. He gave us the word 'tesseract' and wrote stories about what life might be like in four-dimensional space. He was so passionate about this idea that he created wooden models and color-coding systems to help people understand four-dimensional geometry.
-
-            In the early 1900s, Alicia Boole Stott (daughter of the famous logician George Boole) made an incredible breakthrough. Without any formal mathematical training, she developed an intuitive understanding of four-dimensional geometry that surpassed many professional mathematicians. She figured out how to "slice" four-dimensional objects in a way that helped people understand them, much like how we can understand a cube by looking at its square cross-sections.
-
-            Then Einstein came along in 1915 and changed everything. He showed us that time itself could be thought of as a fourth dimension, different from but mathematically related to our three spatial dimensions. Suddenly, the abstract mathematics of four-dimensional geometry had a profound physical meaning.
-
-            The most beautiful part of this story is how each of these thinkers approached the challenge differently:
-            • Cayley through pure mathematics
-            • Hinton through visualization and imagination
-            • Boole Stott through intuition and models
-            • Einstein through physics and spacetime
-
-            They all found their own paths to the same truth, showing us that there are many ways to understand complex ideas. 
+            The concept of the fourth dimension has a rich history in both mathematics and culture:
+            
+            1800s: The mathematical foundations
+            • Charles Howard Hinton coined the term "tesseract" in 1888
+            • Edwin Abbott Abbott published "Flatland" in 1884, exploring dimensional concepts through story
+            
+            1900s: Scientific revolution
+            • Einstein's theory of relativity introduced time as the fourth dimension
+            • Marcel Duchamp's "Nude Descending a Staircase" (1912) attempted to show 4D in art
+            
+            Modern era:
+            • Computer graphics allow us to visualize higher dimensions
+            • String theory suggests our universe might have 10 or 11 dimensions
+            • Quantum computing uses multi-dimensional mathematics
+            
+            The tesseract has become more than just mathematics – it's a symbol of how we push the boundaries of human understanding.
             """)
             .foregroundColor(.gray)
+            
+            // Add a stylized quote
+            Text("\"The only way of discovering the limits of the possible is to venture a little way past them into the impossible.\" - Arthur C. Clarke")
+                .italic()
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color(white: 0.1))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(LinearGradient(colors: [.blue.opacity(0.3), .cyan.opacity(0.3)], 
+                                             startPoint: .topLeading, 
+                                             endPoint: .bottomTrailing),
+                                lineWidth: 1)
+                )
+                .padding(.vertical)
+                .foregroundColor(.gray)
         }
     }
 }
@@ -230,8 +220,52 @@ struct TechnicalSection: View {
                 .foregroundColor(.cyan)
             
             Text("""
-            Now, let me show you something really cool about how we make this four-dimensional object dance on the screen. 
+            Let me show you something fascinating about how dimensions build upon each other:
+            """)
+            .foregroundColor(.gray)
+            
+            // Dimensional progression display
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Building Up Through Dimensions:")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                Text("""
+                0D:  Point
+                     ↓  + length
+                1D:  Line
+                     ↓  + width
+                2D:  Square
+                     ↓  + height
+                3D:  Cube
+                     ↓  + ana
+                4D:  Tesseract
+                """)
+                .font(.custom("Courier", size: 16))
+                .tracking(2)
+                .foregroundColor(.cyan)
+                .padding(20)
+                .background(Color(white: 0.1))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(LinearGradient(colors: [.blue, .cyan], 
+                                             startPoint: .topLeading, 
+                                             endPoint: .bottomTrailing),
+                                lineWidth: 1)
+                )
+                .shadow(color: .blue.opacity(0.2), radius: 8, x: 0, y: 4)
+            }
+            .padding(.vertical)
+            
+            Text("""
+            This progression reveals the fundamental pattern of dimensional thinking. Each new dimension adds a new direction of movement, perpendicular to all previous ones. The mysterious fourth dimension (sometimes called 'ana') extends the cube in a direction we can't point to in our 3D world, just as we can't point to 'up' while staying on a 2D surface.
 
+            Now, let me show you something really cool about how we make this four-dimensional object dance on your screen.
+            """)
+            .foregroundColor(.gray)
+            
+            Text("""
             First, we use something called quaternions. Don't let the fancy name scare you – they're actually a beautiful way to handle rotations. Imagine you're trying to tell someone how to rotate an object. You could give them a sequence of steps: "First rotate this way, then that way..." But quaternions let us describe any rotation in one elegant package:
             """)
             .foregroundColor(.gray)
@@ -364,96 +398,127 @@ struct ContentSelectionView: View {
     }
 }
 
+struct GuideImageView: View {
+    let imageName: String
+    let caption: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxHeight: 120)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(LinearGradient(colors: [.blue.opacity(0.3), .cyan.opacity(0.3)], 
+                                             startPoint: .topLeading, 
+                                             endPoint: .bottomTrailing),
+                                lineWidth: 1)
+                )
+            
+            if !caption.isEmpty {
+                Text(caption)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(.vertical, 8)
+    }
+}
+
 struct AppGuideSection: View {
     var body: some View {
-        Group {
+        VStack(alignment: .leading, spacing: 24) {
             Text("App Guide")
                 .font(.system(.title, design: .rounded))
                 .foregroundColor(.cyan)
             
-            Text("""
-            Welcome to TesseractAx! This guide will help you make the most of the app's features.
-            """)
-            .font(.system(.body, design: .rounded))
+            Text("This guide will help you explore and understand four-dimensional geometry through interactive visualization.")
+                .font(.system(.body, design: .rounded))
+                .foregroundColor(.gray)
             
-            Group {
-                Text("Main Screen")
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Visualization Settings")
                     .font(.headline)
                     .foregroundColor(.cyan)
-                    .padding(.top)
+                
+                GuideImageView(
+                    imageName: "visualization-controls",
+                    caption: "Controls for different visualization modes"
+                )
                 
                 Text("""
-                The main screen shows the rotating tesseract visualization. You'll find:
-                • Settings button (top left): Access all controls and options
-                • Info button (top right): Toggle between this guide and mathematical exploration
-                • Full-screen visualization: The tesseract renders across your entire screen
+                View Modes:
+                • **Wireframe**: Shows the edges and connections clearly, helping you understand the structure's geometry and how the vertices connect in 4D space.
+                • **Solid**: Displays faces with transparency, giving you a better sense of depth and volume as the tesseract rotates.
+                
+                Projection Types:
+                • **Perspective**: Provides a more natural, 3D-like view similar to how we see objects in our world. Closer parts appear larger.
+                • **Orthographic**: Maintains parallel lines and true proportions, useful for understanding the mathematical relationships between different parts.
+                
+                Cross-Section:
+                • Toggle to **slice** through the tesseract and see its internal structure
+                • Slider controls where you **cut through** the 4D object
+                • Helps visualize how a **3D cube** is just a slice of a **4D tesseract**, similar to how a **2D square** is a slice of a **3D cube**
                 """)
+                .foregroundColor(.gray)
             }
             
-            Group {
-                Text("Visualization Controls")
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Understanding 4D Rotation")
                     .font(.headline)
                     .foregroundColor(.cyan)
-                    .padding(.top)
+                
+                GuideImageView(
+                    imageName: "rotation-planes",
+                    caption: "Controls for rotation in different dimensional planes"
+                )
                 
                 Text("""
-                In the settings panel, you can control how the tesseract is displayed:
+                The tesseract rotates in four different planes, each showing a unique aspect of 4D space:
                 
-                1. Visualization Mode
-                • Wireframe: See the edges and connections clearly
-                • Solid: View with filled faces and depth-based transparency
+                **XW (4D Movement)**:
+                • Rotates between our **3D space** and the **fourth dimension**
+                • Watch how parts of the tesseract appear to **grow** and **shrink** as they move through 4D
+                • Similar to how a cube would appear to a **2D being** as it passes through their plane
                 
-                2. Projection Type
-                • Perspective: Traditional 3D-like view with depth
-                • Orthographic: Mathematical view preserving parallel lines
+                **YZ (Height)**:
+                • Traditional **vertical rotation**
+                • Helps maintain **spatial orientation** while exploring 4D movement
                 
-                3. Cross-Section View
-                • Toggle the cross-section view on/off
-                • Adjust the position to "slice" through the tesseract
+                **XY (Horizontal)**:
+                • Classic **side-to-side rotation**
+                • Provides a **familiar reference** point for understanding more complex rotations
+                
+                **ZW (Depth)**:
+                • Combines **3D depth** with **4D movement**
+                • Shows how objects can rotate "**through**" the fourth dimension
+                
+                For each rotation plane:
+                • **Lock toggle**: Freeze specific rotations to focus on understanding one type of movement at a time
+                • **Speed slider**: Control how fast each rotation happens, allowing you to study specific movements in detail
                 """)
+                .foregroundColor(.gray)
             }
             
-            Group {
-                Text("Rotation Controls")
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Learning Strategy")
                     .font(.headline)
                     .foregroundColor(.cyan)
-                    .padding(.top)
                 
                 Text("""
-                Control the tesseract's rotation in multiple ways:
-                
-                1. Auto-Rotation
-                • Enable/disable automatic rotation
-                • Adjust rotation speed with the slider
-                
-                2. Manual Rotation
-                Four independent rotation controls:
-                • 4D Rotation (XW): Move through the fourth dimension
-                • Height (YZ): Rotate vertically
-                • Horizontal (XY): Rotate horizontally
-                • Depth (ZW): Rotate through depth
-                
-                3. Axis Locking
-                • Each rotation plane can be locked independently
-                • Use locks to focus on specific dimensional movements
+                1. Start in **wireframe mode** with only **XY rotation** to get comfortable with basic movement
+                2. Add **YZ rotation** to understand how the structure moves in 3D space
+                3. Enable **XW rotation** to begin exploring the fourth dimension
+                4. Use the **cross-section view** to understand how 3D slices form the complete 4D object
+                5. Switch to **solid mode** to see how the structure's volume changes during 4D rotation
+                6. Experiment with **different combinations** of rotations to develop 4D spatial intuition
                 """)
-            }
-            
-            Group {
-                Text("Tips for Best Experience")
-                    .font(.headline)
-                    .foregroundColor(.cyan)
-                    .padding(.top)
-                
-                Text("""
-                • Start with wireframe mode to understand the structure
-                • Experiment with locking different axes to see their effects
-                • Try the cross-section view to understand internal structure
-                • Switch between projection modes to see different aspects
-                • Use manual rotation to explore specific movements
-                """)
+                .foregroundColor(.gray)
             }
         }
+        .padding(24)
     }
 }
 
