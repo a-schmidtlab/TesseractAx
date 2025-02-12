@@ -7,6 +7,7 @@
  */
 
 import SwiftUI
+import os.signpost
 
 /// Visualization mode for the tesseract
 enum TesseractVisualizationMode {
@@ -67,11 +68,12 @@ struct TesseractView: View {
     @State private var showCrossSection: Bool = false
     @State private var crossSectionPosition: Double = 0
     
-    // Original rotation angle (keeping for compatibility)
-    var rotationAngle: Double
-    
     // Timer for auto-rotation (optimized for real device)
     let timer = Timer.publish(every: 1/120, on: .main, in: .common).autoconnect()
+    
+    private let signposter = OSSignposter()
+    private static let subsystem = "com.axelschmidt.SofaRotator"
+    private static let logger = Logger(subsystem: subsystem, category: "Performance")
     
     var body: some View {
         NavigationStack {
@@ -93,9 +95,13 @@ struct TesseractView: View {
                     
                     // Main visualization
                     Canvas { context, size in
+                        let signpostID = signposter.makeSignpostID()
+                        let interval = signposter.beginInterval("Frame Render", id: signpostID)
+                        
                         let center = CGPoint(x: size.width/2, y: size.height/2)
                         let scale = min(size.width, size.height) * 4.0
                         
+                        signposter.emitEvent("Begin Vertex Creation", id: signpostID)
                         // Create vertices with enhanced 4D perspective
                         let innerCube = createVertices(
                             scale: 0.5,
@@ -122,7 +128,9 @@ struct TesseractView: View {
                             viewScale: scale,
                             center: center
                         )
+                        signposter.emitEvent("End Vertex Creation", id: signpostID)
                         
+                        signposter.emitEvent("Begin Drawing", id: signpostID)
                         switch visualizationMode {
                         case .wireframe:
                             drawWireframe(context: context, innerCube: innerCube, outerCube: outerCube)
@@ -133,23 +141,38 @@ struct TesseractView: View {
                         if showCrossSection {
                             drawCrossSection(context: context, position: crossSectionPosition, scale: scale, center: center)
                         }
+                        signposter.emitEvent("End Drawing", id: signpostID)
+                        
+                        signposter.endInterval("Frame Render", interval)
                     }
                     .ignoresSafeArea()
                     .onReceive(timer) { _ in
-                        let rotationDelta = 0.02  // Increased base rotation speed
+                        let signpostID = signposter.makeSignpostID()
+                        let interval = signposter.beginInterval("Timer Update", id: signpostID)
+                        
+                        let rotationDelta = 0.02
                         if isAutoRotating {
-                            // Use global speed multiplier with default axis speeds
                             if !lockXW { xwRotation += rotationDelta * xwSpeed * autoRotationSpeed }
                             if !lockYZ { yzRotation += rotationDelta * yzSpeed * autoRotationSpeed }
                             if !lockXY { xyRotation += rotationDelta * xySpeed * autoRotationSpeed }
                             if !lockZW { zwRotation += rotationDelta * zwSpeed * autoRotationSpeed }
                         } else {
-                            // Use individual speed controls
                             xwRotation += rotationDelta * xwSliderPosition * 2
                             yzRotation += rotationDelta * yzSliderPosition * 2
                             xyRotation += rotationDelta * xySliderPosition * 2
                             zwRotation += rotationDelta * zwSliderPosition * 2
                         }
+                        
+                        signposter.endInterval("Timer Update", interval)
+                    }
+                    
+                    // Move these modifiers to the parent ZStack or NavigationStack level
+                    // since they apply to the whole view hierarchy
+                    .onChange(of: visualizationMode) { _ in
+                        Self.logger.debug("Visualization mode changed")
+                    }
+                    .onChange(of: projectionMode) { _ in
+                        Self.logger.debug("Projection mode changed")
                     }
                     
                     // Top Bar with Buttons
@@ -744,6 +767,5 @@ struct DarkGroupBoxStyle: GroupBoxStyle {
 }
 
 #Preview {
-    TesseractView(rotationAngle: 0)
-        .ignoresSafeArea()
+    TesseractView()
 } 
