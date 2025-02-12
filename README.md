@@ -30,6 +30,40 @@ This visualization stands on the shoulders of giants:
 - Ludwig Schläfli - Classification of regular polytopes
 - Hermann Minkowski - Four-dimensional spacetime formulation
 
+
+## Interactive Features
+
+### Visualization Modes
+- **Wireframe Mode**: Classic visualization showing the edges and vertices of the tesseract
+- **Solid Mode**: Advanced rendering with faces and depth-based transparency
+- **Cross-Section View**: Real-time slicing through the fourth dimension
+
+### Projection Controls
+- **Perspective Projection**: Traditional 3D-like view with depth perception
+- **Orthographic Projection**: Mathematical view preserving parallel lines
+
+### Advanced Rotation System
+- **Manual 4D Controls**: Individual control over all four-dimensional rotation planes
+  - XW Rotation: Movement through the fourth dimension
+  - YZ Rotation: Vertical rotation
+  - XY Rotation: Horizontal rotation
+  - ZW Rotation: Depth rotation
+- **Auto-Rotation**: Smooth automated rotation with adjustable speed
+- **Axis Locking**: Ability to lock individual rotation planes
+
+### User Interface
+- **Full-Screen Visualization**: Immersive view of the tesseract
+- **Intuitive Controls**: Easy-to-use sliders and toggles for all parameters
+- **Real-Time Updates**: Instant visual feedback for all adjustments
+- **Info Panel**: Detailed mathematical and historical context
+
+### Technical Highlights
+- **Depth-Based Rendering**: Objects closer to the viewer appear more opaque
+- **Gradient Coloring**: Visual cues for depth and orientation
+- **Optimized Performance**: Smooth animations even during complex rotations
+- **Portrait Mode Optimization**: Designed for one-handed mobile use
+
+
 ## Technical Implementation
 
 Built with:

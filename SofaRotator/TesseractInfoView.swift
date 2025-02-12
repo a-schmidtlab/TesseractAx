@@ -304,48 +304,225 @@ struct InteractiveSection: View {
     }
 }
 
+struct ContentSelectionView: View {
+    let onSelectGuide: () -> Void
+    let onSelectMath: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 32) {
+            VStack(spacing: 24) {
+                Button(action: onSelectGuide) {
+                    VStack(spacing: 12) {
+                        Image(systemName: "hand.tap")
+                            .font(.largeTitle)
+                        Text("App Guide")
+                            .font(.headline)
+                        Text("Learn how to use the app's features and controls")
+                            .font(.caption)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(24)
+                    .background(Color(white: 0.1))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(LinearGradient(colors: [.blue, .cyan], 
+                                                 startPoint: .topLeading, 
+                                                 endPoint: .bottomTrailing),
+                                    lineWidth: 1)
+                    )
+                }
+                
+                Button(action: onSelectMath) {
+                    VStack(spacing: 12) {
+                        Image(systemName: "cube.transparent")
+                            .font(.largeTitle)
+                        Text("Mathematical Journey")
+                            .font(.headline)
+                        Text("Explore the mathematics and history of the fourth dimension")
+                            .font(.caption)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(24)
+                    .background(Color(white: 0.1))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(LinearGradient(colors: [.purple, .cyan], 
+                                                 startPoint: .topLeading, 
+                                                 endPoint: .bottomTrailing),
+                                    lineWidth: 1)
+                    )
+                }
+            }
+            .foregroundColor(.cyan)
+            .padding(.horizontal)
+        }
+        .padding(24)
+    }
+}
+
+struct AppGuideSection: View {
+    var body: some View {
+        Group {
+            Text("App Guide")
+                .font(.system(.title, design: .rounded))
+                .foregroundColor(.cyan)
+            
+            Text("""
+            Welcome to TesseractAx! This guide will help you make the most of the app's features.
+            """)
+            .font(.system(.body, design: .rounded))
+            
+            Group {
+                Text("Main Screen")
+                    .font(.headline)
+                    .foregroundColor(.cyan)
+                    .padding(.top)
+                
+                Text("""
+                The main screen shows the rotating tesseract visualization. You'll find:
+                • Settings button (top left): Access all controls and options
+                • Info button (top right): Toggle between this guide and mathematical exploration
+                • Full-screen visualization: The tesseract renders across your entire screen
+                """)
+            }
+            
+            Group {
+                Text("Visualization Controls")
+                    .font(.headline)
+                    .foregroundColor(.cyan)
+                    .padding(.top)
+                
+                Text("""
+                In the settings panel, you can control how the tesseract is displayed:
+                
+                1. Visualization Mode
+                • Wireframe: See the edges and connections clearly
+                • Solid: View with filled faces and depth-based transparency
+                
+                2. Projection Type
+                • Perspective: Traditional 3D-like view with depth
+                • Orthographic: Mathematical view preserving parallel lines
+                
+                3. Cross-Section View
+                • Toggle the cross-section view on/off
+                • Adjust the position to "slice" through the tesseract
+                """)
+            }
+            
+            Group {
+                Text("Rotation Controls")
+                    .font(.headline)
+                    .foregroundColor(.cyan)
+                    .padding(.top)
+                
+                Text("""
+                Control the tesseract's rotation in multiple ways:
+                
+                1. Auto-Rotation
+                • Enable/disable automatic rotation
+                • Adjust rotation speed with the slider
+                
+                2. Manual Rotation
+                Four independent rotation controls:
+                • 4D Rotation (XW): Move through the fourth dimension
+                • Height (YZ): Rotate vertically
+                • Horizontal (XY): Rotate horizontally
+                • Depth (ZW): Rotate through depth
+                
+                3. Axis Locking
+                • Each rotation plane can be locked independently
+                • Use locks to focus on specific dimensional movements
+                """)
+            }
+            
+            Group {
+                Text("Tips for Best Experience")
+                    .font(.headline)
+                    .foregroundColor(.cyan)
+                    .padding(.top)
+                
+                Text("""
+                • Start with wireframe mode to understand the structure
+                • Experiment with locking different axes to see their effects
+                • Try the cross-section view to understand internal structure
+                • Switch between projection modes to see different aspects
+                • Use manual rotation to explore specific movements
+                """)
+            }
+        }
+    }
+}
+
 struct TesseractInfoView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedContent: ContentType? = nil
+    
+    enum ContentType {
+        case guide
+        case math
+    }
     
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 32) {
-                    IntroductionSection()
-                    DimensionalAnalysisSection()
-                    HistoricalSection()
-                    TechnicalSection()
-                    InteractiveSection()
-                    
-                    Text("\"In mathematics you don't understand things. You just get used to them. The essence of mathematics lies in its freedom. Mathematics, viewed this way isn't just about numbers and equations, but about patterns - patterns found in nature, patterns invented by the human mind. It's about how these patterns influence each other, combine and generate new patterns. That's where its true beauty lies.\" - John von Neumann")
-                        .italic()
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .foregroundColor(.gray)
-                    
-                    Divider()
-                        .background(LinearGradient(colors: [.blue.opacity(0.3), .cyan.opacity(0.3)], 
-                                                 startPoint: .leading, 
-                                                 endPoint: .trailing))
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                    
-                    VStack(alignment: .trailing, spacing: 8) {
-                        Text("This App is for Silke")
-                            .foregroundColor(.gray)
-                        Text("So Long, and Thanks for All the Fish")
+                if selectedContent == nil {
+                    ContentSelectionView(
+                        onSelectGuide: { selectedContent = .guide },
+                        onSelectMath: { selectedContent = .math }
+                    )
+                } else if selectedContent == .guide {
+                    AppGuideSection()
+                        .padding(24)
+                } else {
+                    VStack(alignment: .leading, spacing: 32) {
+                        IntroductionSection()
+                        DimensionalAnalysisSection()
+                        HistoricalSection()
+                        TechnicalSection()
+                        InteractiveSection()
+                        
+                        Text("\"In mathematics you don't understand things. You just get used to them. The essence of mathematics lies in its freedom. Mathematics, viewed this way isn't just about numbers and equations, but about patterns - patterns found in nature, patterns invented by the human mind. It's about how these patterns influence each other, combine and generate new patterns. That's where its true beauty lies.\" - John von Neumann")
                             .italic()
+                            .padding()
+                            .frame(maxWidth: .infinity)
                             .foregroundColor(.gray)
-                        Text("- Axel Schmidt (Berlin, 2025)")
-                            .foregroundColor(.gray)
+                        
+                        Divider()
+                            .background(LinearGradient(colors: [.blue.opacity(0.3), .cyan.opacity(0.3)], 
+                                                     startPoint: .leading, 
+                                                     endPoint: .trailing))
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                        
+                        VStack(alignment: .trailing, spacing: 8) {
+                            Text("This App is for Silke")
+                                .foregroundColor(.gray)
+                            Text("So Long, and Thanks for All the Fish")
+                                .italic()
+                                .foregroundColor(.gray)
+                            Text("- Axel Schmidt (Berlin, 2025)")
+                                .foregroundColor(.gray)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.horizontal)
                     }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.horizontal)
+                    .padding(24)
                 }
-                .padding(24)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if selectedContent != nil {
+                        Button("Back") {
+                            selectedContent = nil
+                        }
+                        .foregroundColor(.cyan)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()

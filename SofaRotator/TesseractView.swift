@@ -8,23 +8,206 @@
 
 import SwiftUI
 
-/// Hauptansicht für die Tesseract-Visualisierung (Main view for tesseract visualization)
+/// Visualization mode for the tesseract
+enum TesseractVisualizationMode {
+    case wireframe
+    case solid
+}
+
+/// Projection mode for the tesseract
+enum TesseractProjectionMode {
+    case perspective
+    case orthographic
+}
+
+/// Main view for tesseract visualization
 struct TesseractView: View {
+    // Color scheme
+    private let primaryColor = Color.cyan
+    private let secondaryColor = Color.blue
+    private let accentColor = Color.purple
+    private let backgroundColor = Color.black
+    
+    // State variables for menu
+    @State private var showControls = false
+    
+    // Rotation angles for different 4D planes
+    @State private var xwRotation: Double = 0
+    @State private var yzRotation: Double = 0
+    @State private var xyRotation: Double = 0
+    @State private var zwRotation: Double = 0
+    
+    // Rotation speeds for different planes (optimized for real device)
+    @State private var xwSpeed: Double = 0.5
+    @State private var yzSpeed: Double = 0.35
+    @State private var xySpeed: Double = 0.25
+    @State private var zwSpeed: Double = 0.15
+    
+    // Slider positions for individual speed control
+    @State private var xwSliderPosition: Double = 0
+    @State private var yzSliderPosition: Double = 0
+    @State private var xySliderPosition: Double = 0
+    @State private var zwSliderPosition: Double = 0
+    
+    // Auto-rotation
+    @State private var isAutoRotating: Bool = true
+    @State private var autoRotationSpeed: Double = 1.0
+    
+    // Visualization settings
+    @State private var visualizationMode: TesseractVisualizationMode = .wireframe
+    @State private var projectionMode: TesseractProjectionMode = .perspective
+    
+    // Axis locks
+    @State private var lockXW: Bool = false
+    @State private var lockYZ: Bool = false
+    @State private var lockXY: Bool = false
+    @State private var lockZW: Bool = false
+    
+    // Cross-section settings
+    @State private var showCrossSection: Bool = false
+    @State private var crossSectionPosition: Double = 0
+    
+    // Original rotation angle (keeping for compatibility)
     var rotationAngle: Double
     
+    // Timer for auto-rotation (optimized for real device)
+    let timer = Timer.publish(every: 1/30, on: .main, in: .common).autoconnect()
+    
     var body: some View {
-        Canvas { context, size in
-            let center = CGPoint(x: size.width/2, y: size.height/2)
-            let scale = min(size.width, size.height) * 6.0
-            
-            // Erzeuge Vertices mit verbesserter 4D-Perspektive
-            let innerCube = createVertices(scale: 0.5, w: 0.5, angle: rotationAngle, viewScale: scale, center: center)
-            let outerCube = createVertices(scale: 1.0, w: -0.5, angle: rotationAngle, viewScale: scale, center: center)
-            
-            // Zeichne mit tiefenbasierter Transparenz (Draw with depth-based opacity)
-            drawConnections(context: context, from: innerCube, to: outerCube)
-            drawCube(context: context, vertices: outerCube)
-            drawCube(context: context, vertices: innerCube)
+        NavigationStack {
+            GeometryReader { geometry in
+                ZStack {
+                    // Background
+                    Color.black
+                        .ignoresSafeArea()
+                    
+                    // Initialize slider positions and start auto-rotation when view appears
+                    .onAppear {
+                        xwSliderPosition = 0
+                        yzSliderPosition = 0
+                        xySliderPosition = 0
+                        zwSliderPosition = 0
+                        isAutoRotating = true
+                        autoRotationSpeed = 1.0
+                    }
+                    
+                    // Main visualization
+                    Canvas { context, size in
+                        let center = CGPoint(x: size.width/2, y: size.height/2)
+                        let scale = min(size.width, size.height) * 4.0
+                        
+                        // Create vertices with enhanced 4D perspective
+                        let innerCube = createVertices(
+                            scale: 0.5,
+                            w: 0.5,
+                            angles: (
+                                xw: lockXW ? 0 : xwRotation,
+                                yz: lockYZ ? 0 : yzRotation,
+                                xy: lockXY ? 0 : xyRotation,
+                                zw: lockZW ? 0 : zwRotation
+                            ),
+                            viewScale: scale,
+                            center: center
+                        )
+                        
+                        let outerCube = createVertices(
+                            scale: 1.0,
+                            w: -0.5,
+                            angles: (
+                                xw: lockXW ? 0 : xwRotation,
+                                yz: lockYZ ? 0 : yzRotation,
+                                xy: lockXY ? 0 : xyRotation,
+                                zw: lockZW ? 0 : zwRotation
+                            ),
+                            viewScale: scale,
+                            center: center
+                        )
+                        
+                        switch visualizationMode {
+                        case .wireframe:
+                            drawWireframe(context: context, innerCube: innerCube, outerCube: outerCube)
+                        case .solid:
+                            drawSolid(context: context, innerCube: innerCube, outerCube: outerCube)
+                        }
+                        
+                        if showCrossSection {
+                            drawCrossSection(context: context, position: crossSectionPosition, scale: scale, center: center)
+                        }
+                    }
+                    .ignoresSafeArea()
+                    .onReceive(timer) { _ in
+                        let rotationDelta = 0.05  // Base rotation speed optimized for real device
+                        if isAutoRotating {
+                            // Use global speed multiplier with default axis speeds
+                            if !lockXW { xwRotation += rotationDelta * xwSpeed }
+                            if !lockYZ { yzRotation += rotationDelta * yzSpeed }
+                            if !lockXY { xyRotation += rotationDelta * xySpeed }
+                            if !lockZW { zwRotation += rotationDelta * zwSpeed }
+                        } else {
+                            // Use individual speed controls
+                            xwRotation += rotationDelta * xwSliderPosition
+                            yzRotation += rotationDelta * yzSliderPosition
+                            xyRotation += rotationDelta * xySliderPosition
+                            zwRotation += rotationDelta * zwSliderPosition
+                        }
+                    }
+                    
+                    // Top Bar with Buttons
+                    VStack {
+                        HStack {
+                            // Settings Button
+                            Button(action: { showControls.toggle() }) {
+                                Image(systemName: "slider.horizontal.3")
+                                    .font(.title2)
+                                    .foregroundColor(primaryColor)
+                                    .frame(width: 44, height: 44)
+                                    .background(backgroundColor.opacity(0.6))
+                                    .clipShape(Circle())
+                            }
+                            
+                            Spacer()
+                            
+                            // Info Button (restored original styling)
+                            NavigationLink(destination: TesseractInfoView()) {
+                                Image(systemName: "info.circle")
+                                    .font(.title2)
+                                    .foregroundColor(primaryColor)
+                                    .frame(width: 44, height: 44)
+                                    .background(backgroundColor.opacity(0.6))
+                                    .clipShape(Circle())
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        
+                        Spacer()
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+        }
+        .sheet(isPresented: $showControls) {
+            TesseractControlsView(
+                visualizationMode: $visualizationMode,
+                projectionMode: $projectionMode,
+                isAutoRotating: $isAutoRotating,
+                autoRotationSpeed: $autoRotationSpeed,
+                xwRotation: $xwSliderPosition,
+                yzRotation: $yzSliderPosition,
+                xyRotation: $xySliderPosition,
+                zwRotation: $zwSliderPosition,
+                lockXW: $lockXW,
+                lockYZ: $lockYZ,
+                lockXY: $lockXY,
+                lockZW: $lockZW,
+                showCrossSection: $showCrossSection,
+                crossSectionPosition: $crossSectionPosition,
+                primaryColor: primaryColor,
+                secondaryColor: secondaryColor,
+                accentColor: accentColor
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
     }
     
@@ -35,7 +218,7 @@ struct TesseractView: View {
     ///   - angle: Rotationswinkel
     ///   - viewScale: Ansichtsskalierung
     ///   - center: Bildschirmmittelpunkt
-    private func createVertices(scale: Double, w: Double, angle: Double, viewScale: Double, center: CGPoint) -> [(point: CGPoint, depth: Double)] {
+    private func createVertices(scale: Double, w: Double, angles: (xw: Double, yz: Double, xy: Double, zw: Double), viewScale: Double, center: CGPoint) -> [(point: CGPoint, depth: Double)] {
         // Würfeleckpunkte im 3D-Raum
         let vertices = [
             (-scale, -scale, -scale), (scale, -scale, -scale),
@@ -47,10 +230,10 @@ struct TesseractView: View {
         return vertices.map { (x, y, z) in
             let projected = project4D(
                 x: x, y: y, z: z, w: w,
-                xwAngle: angle,
-                yzAngle: angle * 0.7,  // Goldener Schnitt Approximation
-                xyAngle: angle * 0.5,
-                zwAngle: angle * 0.3,
+                xwAngle: angles.xw,
+                yzAngle: angles.yz,
+                xyAngle: angles.xy,
+                zwAngle: angles.zw,
                 scale: viewScale,
                 center: center
             )
@@ -77,18 +260,33 @@ struct TesseractView: View {
         let projY = rotY * w1
         let projZ = rotZ * w1
         
-        // Perspektivische Projektion: 3D → 2D mit Tiefeneffekt
+        // View distance for both projection modes
         let viewDistance = 4.0
-        let perspective = 1.0 / (viewDistance - projZ)
-        let screenX = projX * perspective
-        let screenY = projY * perspective
+        var screenX: Double
+        var screenY: Double
+        var depth: Double
+        
+        switch projectionMode {
+        case .perspective:
+            // Perspektivische Projektion: 3D → 2D mit Tiefeneffekt
+            let perspective = 1.0 / (viewDistance - projZ)
+            screenX = projX * perspective
+            screenY = projY * perspective
+            depth = perspective
+            
+        case .orthographic:
+            // Orthographische Projektion: 3D → 2D ohne Tiefenverzerrung
+            screenX = projX * 0.5 // Scale factor for orthographic view
+            screenY = projY * 0.5
+            depth = 1.0 / (viewDistance - projZ) // Keep depth for shading
+        }
         
         return (
             point: CGPoint(
                 x: center.x + screenX * scale,
                 y: center.y + screenY * scale
             ),
-            depth: perspective
+            depth: depth
         )
     }
     
@@ -170,10 +368,382 @@ struct TesseractView: View {
     private func calculateOpacity(depth: Double) -> Double {
         return min(max(0.2 + depth * 2, 0.2), 1.0)
     }
+    
+    /// Draws the tesseract in wireframe mode
+    private func drawWireframe(context: GraphicsContext, innerCube: [(point: CGPoint, depth: Double)], outerCube: [(point: CGPoint, depth: Double)]) {
+        drawConnections(context: context, from: innerCube, to: outerCube)
+        drawCube(context: context, vertices: outerCube)
+        drawCube(context: context, vertices: innerCube)
+    }
+    
+    /// Draws the tesseract in solid mode with faces
+    private func drawSolid(context: GraphicsContext, innerCube: [(point: CGPoint, depth: Double)], outerCube: [(point: CGPoint, depth: Double)]) {
+        // Define faces for each cube (clockwise winding)
+        let faces = [
+            [0, 1, 2, 3], // Front
+            [4, 5, 6, 7], // Back
+            [0, 1, 5, 4], // Bottom
+            [2, 3, 7, 6], // Top
+            [0, 3, 7, 4], // Left
+            [1, 2, 6, 5]  // Right
+        ]
+        
+        // Draw outer cube faces
+        for face in faces {
+            let path = Path { p in
+                p.move(to: outerCube[face[0]].point)
+                for i in 1...3 {
+                    p.addLine(to: outerCube[face[i]].point)
+                }
+                p.closeSubpath()
+            }
+            
+            // Calculate average depth for face
+            let avgDepth = face.reduce(0.0) { $0 + outerCube[$1].depth } / 4.0
+            let opacity = calculateOpacity(depth: avgDepth)
+            
+            // Fill face with gradient
+            let gradient = Gradient(colors: [
+                Color.blue.opacity(opacity * 0.3),
+                Color.cyan.opacity(opacity * 0.2)
+            ])
+            
+            context.fill(path, with: .linearGradient(
+                gradient,
+                startPoint: outerCube[face[0]].point,
+                endPoint: outerCube[face[2]].point
+            ))
+            
+            // Draw edges
+            context.stroke(path, with: .color(.cyan.opacity(opacity)), lineWidth: 1.5)
+        }
+        
+        // Draw inner cube faces
+        for face in faces {
+            let path = Path { p in
+                p.move(to: innerCube[face[0]].point)
+                for i in 1...3 {
+                    p.addLine(to: innerCube[face[i]].point)
+                }
+                p.closeSubpath()
+            }
+            
+            let avgDepth = face.reduce(0.0) { $0 + innerCube[$1].depth } / 4.0
+            let opacity = calculateOpacity(depth: avgDepth)
+            
+            let gradient = Gradient(colors: [
+                Color.blue.opacity(opacity * 0.3),
+                Color.cyan.opacity(opacity * 0.2)
+            ])
+            
+            context.fill(path, with: .linearGradient(
+                gradient,
+                startPoint: innerCube[face[0]].point,
+                endPoint: innerCube[face[2]].point
+            ))
+            
+            context.stroke(path, with: .color(.cyan.opacity(opacity)), lineWidth: 1.5)
+        }
+        
+        // Draw connecting lines between cubes
+        drawConnections(context: context, from: innerCube, to: outerCube)
+    }
+    
+    /// Draws a cross-section of the tesseract
+    private func drawCrossSection(context: GraphicsContext, position: Double, scale: Double, center: CGPoint) {
+        // Calculate vertices for the cross-section
+        let w = position // Use position as w-coordinate
+        let sectionVertices = createVertices(
+            scale: 1.0,
+            w: w,
+            angles: (
+                xw: lockXW ? 0 : xwRotation,
+                yz: lockYZ ? 0 : yzRotation,
+                xy: lockXY ? 0 : xyRotation,
+                zw: lockZW ? 0 : zwRotation
+            ),
+            viewScale: scale,
+            center: center
+        )
+        
+        // Draw cross-section as a filled polygon
+        let path = Path { p in
+            p.move(to: sectionVertices[0].point)
+            for i in 1..<8 {
+                p.addLine(to: sectionVertices[i].point)
+            }
+            p.closeSubpath()
+        }
+        
+        // Calculate average depth for the entire section
+        let avgDepth = sectionVertices.reduce(0.0) { $0 + $1.depth } / Double(sectionVertices.count)
+        let opacity = calculateOpacity(depth: avgDepth)
+        
+        // Fill with semi-transparent gradient
+        let gradient = Gradient(colors: [
+            Color.purple.opacity(opacity * 0.3),
+            Color.pink.opacity(opacity * 0.2)
+        ])
+        
+        context.fill(path, with: .linearGradient(
+            gradient,
+            startPoint: CGPoint(x: center.x - scale/2, y: center.y - scale/2),
+            endPoint: CGPoint(x: center.x + scale/2, y: center.y + scale/2)
+        ))
+        
+        // Draw outline
+        context.stroke(path, with: .color(.purple.opacity(opacity)), lineWidth: 2.0)
+    }
+}
+
+/// Custom rotation speed control view
+struct RotationControl: View {
+    let label: String
+    @Binding var value: Double
+    let description: String
+    let primaryColor: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                Text(label)
+                    .font(.subheadline)
+                Spacer()
+                Text(value == 0 ? "Stop" : String(format: value > 0 ? "+%.1f×" : "%.1f×", value))
+                    .font(.caption)
+                    .foregroundColor(value == 0 ? .gray : (value > 0 ? .green : .red))
+            }
+            
+            Text(description)
+                .font(.caption)
+                .foregroundColor(.gray)
+            
+            Slider(value: $value, in: -2...2)
+                .tint(primaryColor)
+        }
+    }
+}
+
+/// Separate view for tesseract controls
+struct TesseractControlsView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    @Binding var visualizationMode: TesseractVisualizationMode
+    @Binding var projectionMode: TesseractProjectionMode
+    @Binding var isAutoRotating: Bool
+    @Binding var autoRotationSpeed: Double
+    @Binding var xwRotation: Double
+    @Binding var yzRotation: Double
+    @Binding var xyRotation: Double
+    @Binding var zwRotation: Double
+    @Binding var lockXW: Bool
+    @Binding var lockYZ: Bool
+    @Binding var lockXY: Bool
+    @Binding var lockZW: Bool
+    @Binding var showCrossSection: Bool
+    @Binding var crossSectionPosition: Double
+    
+    let primaryColor: Color
+    let secondaryColor: Color
+    let accentColor: Color
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Visualization Mode
+                    GroupBox {
+                        VStack(alignment: .leading) {
+                            Text("Visualization")
+                                .font(.headline)
+                                .foregroundColor(.cyan)
+                            
+                            HStack(spacing: 20) {
+                                Button(action: { visualizationMode = .wireframe }) {
+                                    VStack {
+                                        Image(systemName: visualizationMode == .wireframe ? "checkmark.circle.fill" : "circle")
+                                        Text("Wireframe")
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(visualizationMode == .wireframe ? primaryColor : .gray)
+                                
+                                Button(action: { visualizationMode = .solid }) {
+                                    VStack {
+                                        Image(systemName: visualizationMode == .solid ? "checkmark.circle.fill" : "circle")
+                                        Text("Solid")
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(visualizationMode == .solid ? primaryColor : .gray)
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    .groupBoxStyle(DarkGroupBoxStyle())
+                    
+                    // Projection Mode
+                    GroupBox {
+                        VStack(alignment: .leading) {
+                            Text("Projection")
+                                .font(.headline)
+                                .foregroundColor(.cyan)
+                            
+                            HStack(spacing: 20) {
+                                Button(action: { projectionMode = .perspective }) {
+                                    VStack {
+                                        Image(systemName: projectionMode == .perspective ? "checkmark.circle.fill" : "circle")
+                                        Text("Perspective")
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(projectionMode == .perspective ? primaryColor : .gray)
+                                
+                                Button(action: { projectionMode = .orthographic }) {
+                                    VStack {
+                                        Image(systemName: projectionMode == .orthographic ? "checkmark.circle.fill" : "circle")
+                                        Text("Orthographic")
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(projectionMode == .orthographic ? primaryColor : .gray)
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    .groupBoxStyle(DarkGroupBoxStyle())
+                    
+                    // Cross-section controls
+                    GroupBox {
+                        VStack(alignment: .leading) {
+                            Text("Cross Section")
+                                .font(.headline)
+                                .foregroundColor(.cyan)
+                            
+                            VStack(spacing: 10) {
+                                Toggle(isOn: $showCrossSection) {
+                                    Label("Show", systemImage: showCrossSection ? "square.stack.3d.down.right.fill" : "square.stack.3d.down.right")
+                                }
+                                .tint(primaryColor)
+                                
+                                if showCrossSection {
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text("Position")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                        Slider(value: $crossSectionPosition, in: -1.0...1.0)
+                                            .tint(accentColor)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    .groupBoxStyle(DarkGroupBoxStyle())
+                    
+                    // Rotation Controls
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 15) {
+                            Text("Rotation Control")
+                                .font(.headline)
+                                .foregroundColor(.cyan)
+                            
+                            // Auto/Manual Toggle
+                            Toggle(isOn: $isAutoRotating) {
+                                Label(isAutoRotating ? "Uniform Speed" : "Individual Speeds", 
+                                      systemImage: isAutoRotating ? "arrow.triangle.2.circlepath" : "slider.horizontal.3")
+                            }
+                            .tint(primaryColor)
+                            
+                            if isAutoRotating {
+                                // Global Speed Control
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text("Global Speed")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text(String(format: "%.1f×", autoRotationSpeed))
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                    
+                                    Slider(value: $autoRotationSpeed, in: 0.1...2.0)
+                                        .tint(primaryColor)
+                                }
+                            } else {
+                                // Individual Speed Controls
+                                VStack(spacing: 15) {
+                                    RotationControl(
+                                        label: "4D Rotation (XW)",
+                                        value: $xwRotation,
+                                        description: "Speed through the fourth dimension",
+                                        primaryColor: primaryColor
+                                    )
+                                    
+                                    RotationControl(
+                                        label: "Height (YZ)",
+                                        value: $yzRotation,
+                                        description: "Vertical rotation speed",
+                                        primaryColor: primaryColor
+                                    )
+                                    
+                                    RotationControl(
+                                        label: "Horizontal (XY)",
+                                        value: $xyRotation,
+                                        description: "Horizontal rotation speed",
+                                        primaryColor: primaryColor
+                                    )
+                                    
+                                    RotationControl(
+                                        label: "Depth (ZW)",
+                                        value: $zwRotation,
+                                        description: "Depth rotation speed",
+                                        primaryColor: primaryColor
+                                    )
+                                }
+                            }
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .groupBoxStyle(DarkGroupBoxStyle())
+                }
+                .padding()
+            }
+            .background(Color.black)
+            .navigationTitle("Tesseract Controls")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.cyan)
+                }
+            }
+            .preferredColorScheme(.dark)
+        }
+    }
+}
+
+struct DarkGroupBoxStyle: GroupBoxStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(alignment: .leading) {
+            configuration.content
+        }
+        .padding()
+        .background(Color(white: 0.1))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(LinearGradient(colors: [.blue.opacity(0.3), .cyan.opacity(0.3)], 
+                                     startPoint: .topLeading, 
+                                     endPoint: .bottomTrailing),
+                        lineWidth: 1)
+        )
+    }
 }
 
 #Preview {
     TesseractView(rotationAngle: 0)
-        .frame(width: 300, height: 300)
-        .background(Color.black)
+        .ignoresSafeArea()
 } 
