@@ -38,16 +38,16 @@ struct TesseractView: View {
     @State private var zwRotation: Double = 0
     
     // Rotation speeds for different planes (optimized for real device)
-    @State private var xwSpeed: Double = 0.5
-    @State private var yzSpeed: Double = 0.35
-    @State private var xySpeed: Double = 0.25
-    @State private var zwSpeed: Double = 0.15
+    @State private var xwSpeed: Double = 1.0
+    @State private var yzSpeed: Double = 0.7
+    @State private var xySpeed: Double = 0.5
+    @State private var zwSpeed: Double = 0.3
     
     // Slider positions for individual speed control
-    @State private var xwSliderPosition: Double = 0
-    @State private var yzSliderPosition: Double = 0
-    @State private var xySliderPosition: Double = 0
-    @State private var zwSliderPosition: Double = 0
+    @State private var xwSliderPosition: Double = 0.5
+    @State private var yzSliderPosition: Double = 0.35
+    @State private var xySliderPosition: Double = 0.25
+    @State private var zwSliderPosition: Double = 0.15
     
     // Auto-rotation
     @State private var isAutoRotating: Bool = true
@@ -71,7 +71,7 @@ struct TesseractView: View {
     var rotationAngle: Double
     
     // Timer for auto-rotation (optimized for real device)
-    let timer = Timer.publish(every: 1/30, on: .main, in: .common).autoconnect()
+    let timer = Timer.publish(every: 1/120, on: .main, in: .common).autoconnect()
     
     var body: some View {
         NavigationStack {
@@ -83,10 +83,10 @@ struct TesseractView: View {
                     
                     // Initialize slider positions and start auto-rotation when view appears
                     .onAppear {
-                        xwSliderPosition = 0
-                        yzSliderPosition = 0
-                        xySliderPosition = 0
-                        zwSliderPosition = 0
+                        xwSliderPosition = 0.5
+                        yzSliderPosition = 0.35
+                        xySliderPosition = 0.25
+                        zwSliderPosition = 0.15
                         isAutoRotating = true
                         autoRotationSpeed = 1.0
                     }
@@ -136,19 +136,19 @@ struct TesseractView: View {
                     }
                     .ignoresSafeArea()
                     .onReceive(timer) { _ in
-                        let rotationDelta = 0.05  // Base rotation speed optimized for real device
+                        let rotationDelta = 0.02  // Increased base rotation speed
                         if isAutoRotating {
                             // Use global speed multiplier with default axis speeds
-                            if !lockXW { xwRotation += rotationDelta * xwSpeed }
-                            if !lockYZ { yzRotation += rotationDelta * yzSpeed }
-                            if !lockXY { xyRotation += rotationDelta * xySpeed }
-                            if !lockZW { zwRotation += rotationDelta * zwSpeed }
+                            if !lockXW { xwRotation += rotationDelta * xwSpeed * autoRotationSpeed }
+                            if !lockYZ { yzRotation += rotationDelta * yzSpeed * autoRotationSpeed }
+                            if !lockXY { xyRotation += rotationDelta * xySpeed * autoRotationSpeed }
+                            if !lockZW { zwRotation += rotationDelta * zwSpeed * autoRotationSpeed }
                         } else {
                             // Use individual speed controls
-                            xwRotation += rotationDelta * xwSliderPosition
-                            yzRotation += rotationDelta * yzSliderPosition
-                            xyRotation += rotationDelta * xySliderPosition
-                            zwRotation += rotationDelta * zwSliderPosition
+                            xwRotation += rotationDelta * xwSliderPosition * 2
+                            yzRotation += rotationDelta * yzSliderPosition * 2
+                            xyRotation += rotationDelta * xySliderPosition * 2
+                            zwRotation += rotationDelta * zwSliderPosition * 2
                         }
                     }
                     
